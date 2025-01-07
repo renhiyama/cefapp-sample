@@ -34,10 +34,10 @@ cd src/build
 ./Release/cefapp
 ```
 
-You are suggested to use the below mentioned feature flags to run the cefapp.
+You can also pass the url to open as an argument:
 
 ```bash
-./Release/cefapp --ozone-platform=wayland --enable-features=VaapiVideoDecoder,VaapiVideoEncoder,Vulkan,UseSkiaRenderer --disable-features=UseChromeOSDirectVideoDecoder,UseChromeOSDirectVideoEncoder --enable-unsafe-webgpu --hide-controls --hide-overlays --transparent-painting-enabled --url=chrome://gpu
+./Release/cefapp --url=chrome://gpu
 ```
 
 Replace url with the desired url you want to open. `chrome://gpu` is used to check the GPU status.

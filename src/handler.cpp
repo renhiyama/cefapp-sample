@@ -1,7 +1,3 @@
-// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
-// reserved. Use of this source code is governed by a BSD-style license that
-// can be found in the LICENSE file.
-
 #include "handler.h"
 
 #include <sstream>
@@ -15,51 +11,63 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
 
-namespace {
+namespace
+{
 
-SimpleHandler* g_instance = nullptr;
+  SimpleHandler *g_instance = nullptr;
 
-// Returns a data: URI with the specified contents.
-std::string GetDataURI(const std::string& data, const std::string& mime_type) {
-  return "data:" + mime_type + ";base64," +
-         CefURIEncode(CefBase64Encode(data.data(), data.size()), false)
-             .ToString();
-}
+  // Returns a data: URI with the specified contents.
+  std::string GetDataURI(const std::string &data, const std::string &mime_type)
+  {
+    return "data:" + mime_type + ";base64," +
+           CefURIEncode(CefBase64Encode(data.data(), data.size()), false)
+               .ToString();
+  }
 
-}  // namespace
+} // namespace
 
 SimpleHandler::SimpleHandler(bool is_alloy_style)
-    : is_alloy_style_(is_alloy_style) {
+    : is_alloy_style_(is_alloy_style)
+{
   DCHECK(!g_instance);
   g_instance = this;
 }
 
-SimpleHandler::~SimpleHandler() {
+SimpleHandler::~SimpleHandler()
+{
   g_instance = nullptr;
 }
 
 // static
-SimpleHandler* SimpleHandler::GetInstance() {
+SimpleHandler *SimpleHandler::GetInstance()
+{
   return g_instance;
 }
 
 void SimpleHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
-                                  const CefString& title) {
+                                  const CefString &title)
+{
   CEF_REQUIRE_UI_THREAD();
 
-  if (auto browser_view = CefBrowserView::GetForBrowser(browser)) {
+  if (auto browser_view = CefBrowserView::GetForBrowser(browser))
+  {
     // Set the title of the window using the Views framework.
     CefRefPtr<CefWindow> window = browser_view->GetWindow();
-    if (window) {
+    if (window)
+    {
       window->SetTitle(title);
     }
-  } else if (is_alloy_style_) {
+  }
+  else if (is_alloy_style_)
+  {
     // Set the title of the window using platform APIs.
     PlatformTitleChange(browser, title);
   }
 }
 
-void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
+
+void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+{
   CEF_REQUIRE_UI_THREAD();
 
   // Sanity-check the configured runtime style.
@@ -70,13 +78,15 @@ void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   browser_list_.push_back(browser);
 }
 
-bool SimpleHandler::DoClose(CefRefPtr<CefBrowser> browser) {
+bool SimpleHandler::DoClose(CefRefPtr<CefBrowser> browser)
+{
   CEF_REQUIRE_UI_THREAD();
 
   // Closing the main window requires special handling. See the DoClose()
   // documentation in the CEF header for a detailed destription of this
   // process.
-  if (browser_list_.size() == 1) {
+  if (browser_list_.size() == 1)
+  {
     // Set a flag to indicate that the window close should be allowed.
     is_closing_ = true;
   }
@@ -86,19 +96,23 @@ bool SimpleHandler::DoClose(CefRefPtr<CefBrowser> browser) {
   return false;
 }
 
-void SimpleHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
+void SimpleHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
+{
   CEF_REQUIRE_UI_THREAD();
 
   // Remove from the list of existing browsers.
   BrowserList::iterator bit = browser_list_.begin();
-  for (; bit != browser_list_.end(); ++bit) {
-    if ((*bit)->IsSame(browser)) {
+  for (; bit != browser_list_.end(); ++bit)
+  {
+    if ((*bit)->IsSame(browser))
+    {
       browser_list_.erase(bit);
       break;
     }
   }
 
-  if (browser_list_.empty()) {
+  if (browser_list_.empty())
+  {
     // All browser windows have closed. Quit the application message loop.
     CefQuitMessageLoop();
   }
@@ -107,17 +121,20 @@ void SimpleHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
 void SimpleHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 ErrorCode errorCode,
-                                const CefString& errorText,
-                                const CefString& failedUrl) {
+                                const CefString &errorText,
+                                const CefString &failedUrl)
+{
   CEF_REQUIRE_UI_THREAD();
 
   // Allow Chrome to show the error page.
-  if (!is_alloy_style_) {
+  if (!is_alloy_style_)
+  {
     return;
   }
 
   // Don't display an error for downloaded files.
-  if (errorCode == ERR_ABORTED) {
+  if (errorCode == ERR_ABORTED)
+  {
     return;
   }
 
@@ -131,49 +148,61 @@ void SimpleHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
   frame->LoadURL(GetDataURI(ss.str(), "text/html"));
 }
 
-void SimpleHandler::ShowMainWindow() {
-  if (!CefCurrentlyOn(TID_UI)) {
+void SimpleHandler::ShowMainWindow()
+{
+  if (!CefCurrentlyOn(TID_UI))
+  {
     // Execute on the UI thread.
     CefPostTask(TID_UI, base::BindOnce(&SimpleHandler::ShowMainWindow, this));
     return;
   }
 
-  if (browser_list_.empty()) {
+  if (browser_list_.empty())
+  {
     return;
   }
 
   auto main_browser = browser_list_.front();
 
-  if (auto browser_view = CefBrowserView::GetForBrowser(main_browser)) {
+  if (auto browser_view = CefBrowserView::GetForBrowser(main_browser))
+  {
     // Show the window using the Views framework.
-    if (auto window = browser_view->GetWindow()) {
+    if (auto window = browser_view->GetWindow())
+    {
       window->Show();
     }
-  } else if (is_alloy_style_) {
+  }
+  else if (is_alloy_style_)
+  {
     PlatformShowWindow(main_browser);
   }
 }
 
-void SimpleHandler::CloseAllBrowsers(bool force_close) {
-  if (!CefCurrentlyOn(TID_UI)) {
+void SimpleHandler::CloseAllBrowsers(bool force_close)
+{
+  if (!CefCurrentlyOn(TID_UI))
+  {
     // Execute on the UI thread.
     CefPostTask(TID_UI, base::BindOnce(&SimpleHandler::CloseAllBrowsers, this,
                                        force_close));
     return;
   }
 
-  if (browser_list_.empty()) {
+  if (browser_list_.empty())
+  {
     return;
   }
 
   BrowserList::const_iterator it = browser_list_.begin();
-  for (; it != browser_list_.end(); ++it) {
+  for (; it != browser_list_.end(); ++it)
+  {
     (*it)->GetHost()->CloseBrowser(force_close);
   }
 }
 
 #if !defined(OS_MAC)
-void SimpleHandler::PlatformShowWindow(CefRefPtr<CefBrowser> browser) {
+void SimpleHandler::PlatformShowWindow(CefRefPtr<CefBrowser> browser)
+{
   NOTIMPLEMENTED();
 }
 #endif
