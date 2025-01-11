@@ -25,6 +25,9 @@ class SimpleHandler : public CefClient,
                      const CefString& title) override;
   // CefLifeSpanHandler methods:
   void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
+  // bool OnChromeCommand(CefRefPtr<CefBrowser> browser,
+  //                      int command_id,
+  //                      cef_window_open_disposition_t disposition) override;
   bool DoClose(CefRefPtr<CefBrowser> browser) override;
   void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 

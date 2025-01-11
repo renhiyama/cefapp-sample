@@ -65,7 +65,6 @@ void SimpleHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
   }
 }
 
-
 void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
   CEF_REQUIRE_UI_THREAD();
@@ -77,6 +76,32 @@ void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
   // Add to the list of existing browsers.
   browser_list_.push_back(browser);
 }
+
+/* bool SimpleHandler::OnChromeCommand(CefRefPtr<CefBrowser> browser,
+                                    int command_id,
+                                    cef_window_open_disposition_t disposition)
+{
+  CEF_REQUIRE_UI_THREAD();
+  bool block = false;
+  if (true) {
+    // Block all commands that aren't specifically allowed.
+    block = !allowed;
+  } else if (!with_controls_) {
+    // If controls are hidden, block all commands that don't target the current
+    // tab or aren't specifically allowed.
+    block = disposition != CEF_WOD_CURRENT_TAB || !allowed;
+  }
+
+  if (block) {
+    LOG(INFO) << "Blocking command " << command_id << " with disposition "
+              << disposition;
+    return true;
+  }
+
+  // default handling
+  return false;
+}
+*/
 
 bool SimpleHandler::DoClose(CefRefPtr<CefBrowser> browser)
 {

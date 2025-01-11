@@ -39,7 +39,6 @@ namespace
       {
         // Give keyboard focus to the browser view.
         browser_view_->RequestFocus();
-
       }
     }
 
@@ -133,7 +132,6 @@ void CEFApp::OnBeforeCommandLineProcessing(
   command_line->AppendSwitch("transparent-painting-enabled");
 }
 
-
 void CEFApp::OnContextInitialized()
 {
   CEF_REQUIRE_UI_THREAD();
@@ -153,6 +151,7 @@ void CEFApp::OnContextInitialized()
 
   // Specify CEF browser settings here.
   CefBrowserSettings browser_settings;
+  browser_settings.chrome_status_bubble = STATE_DISABLED;
 
   std::string url;
 
@@ -200,15 +199,12 @@ void CEFApp::OnContextInitialized()
     CefWindow::CreateTopLevelWindow(new SimpleWindowDelegate(
         browser_view, runtime_style, initial_show_state));
 
-/*
     // Create the second BrowserView as a test.
     CefRefPtr<CefBrowserView> browser_view2 = CefBrowserView::CreateBrowserView(
         handler, "https://www.youtube.com", browser_settings, nullptr, nullptr,
         new SimpleBrowserViewDelegate(runtime_style));
     CefWindow::CreateTopLevelWindow(new SimpleWindowDelegate(
         browser_view2, runtime_style, initial_show_state));
-*/
-
   }
   else
   {
